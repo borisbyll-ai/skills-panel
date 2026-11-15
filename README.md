@@ -61,7 +61,6 @@ Copy a file from `lang/` (say `fr.json`), name it after the language code (`nl.j
 ## Limits
 
 - Claude Desktop only. In a terminal the panel just shows a short message.
-- Row hover is instant: the app doesn't let a mod animate it.
 - A category shows at most 100 skills. A note at the bottom of the panel names any category over that.
 - The automatic sorting works on keywords, so a few skills may land in a loose category or in Other. Organize fixes that.
 - Unchecking a skill tells Claude to stop following it, but its instructions stay in context until `/clear` or a new session.
