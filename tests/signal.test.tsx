@@ -14,9 +14,9 @@ const PANE = {
   },
 } as const
 
-test('cocher, envoyer, charger : le signal part et le point se remplit', async ($, on) => {
+test('check, send, load: the signal goes out and the dot fills', async ($, on) => {
   // Ces hooks tiennent la place du moteur.
-  on('command.register', () => ({ value: { command: 'panneau-skills' } }))
+  on('command.register', () => ({ value: { command: 'skills-panel' } }))
   on('store.get', () => ({ value: undefined }))
   on('store.set', () => ({ value: undefined }))
   on('session.id', () => ({ value: 's1' }))
@@ -32,27 +32,27 @@ test('cocher, envoyer, charger : le signal part et le point se remplit', async (
   await $.session.start({ cwd: '/projet', surface: 'desktop', isInteractive: true })
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
 
-  // la liste se charge en arrière-plan au démarrage ; le bouton la recharge et attend
+  // the list loads in the background at start; the button reloads it and waits
   if (await ui.find({ type: 'Text', text: /chargement|Loading/ })) await ui.press({ key: 'reload-cat' })
-  // ouvrir la catégorie puis cocher le skill
+  // open the category, then check the skill
   await ui.press({ key: 'co:Animation' })
-  // la flèche de la catégorie qu'on vient d'ouvrir pivote (elle porte son animation)
+  // the arrow of the category just opened turns (it carries its animation)
   expect((await ui.findAll({ type: 'Svg' })).some(x => x.props.alt === 'collapse' && String(x.props.source).includes('<style>'))).toBe(true)
   await ui.press({ key: 'c:gsap-web' })
 
-  // seuls les dessins que le clic a changés portent une animation (la case et sa catégorie) ; les autres sont fixes
+  // only the drawings the click changed carry an animation (the box and its category); the rest stay still
   // (le fond de survol, sans texte alternatif, porte toujours son fondu : il est exclu)
   const animated = (await ui.findAll({ type: 'Svg' })).filter(x => x.props.alt && String(x.props.source).includes('<style>'))
   expect(animated.length).toBe(2)
 
-  // enregistrer la sélection crée un préréglage cliquable
+  // saving the selection creates a clickable preset
   await ui.press({ key: 'pre-new' })
   expect(await ui.find({ type: 'Button', key: 'pre:Selection 1' })).toBeDefined()
 
   const sent = await $.prompt.submit({ text: 'salut' })
   expect(String(sent.context?.[0] ?? '')).toContain('gsap-web')
 
-  // un second envoi sans changement ne renvoie rien
+  // a second send with no change sends nothing
   const again = await $.prompt.submit({ text: 'encore' })
   expect(again.context ?? []).toEqual([])
 

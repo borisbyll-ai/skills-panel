@@ -8,13 +8,13 @@ type E = EngineInterface
 const PANE = 'skills-panel'
 const ACCENT = '#d97757'
 const NARROW_PANE = 34
-const MAX_HITS = 40 // résultats de recherche affichés
-const MAX_ROWS = 100 // lignes affichées par catégorie
+const MAX_HITS = 40 // search results shown
+const MAX_ROWS = 100 // rows shown per category
 
-// ---------- textes
-// L'anglais est intégré ; les autres langues sont des fichiers lang/<code>.json de même forme, choisis
-// d'après la langue de Claude Desktop. Une clé absente d'un fichier retombe sur l'anglais.
-// {x} est remplacé par la valeur ; { "one": …, "other": … } choisit la forme selon le nombre {n}.
+// ---------- texts
+// English is built in. Other languages are lang/<code>.json files with the same keys, picked from the
+// Claude Desktop language. A key missing from a file falls back to English.
+// {x} is a placeholder; { "one": …, "other": … } picks the plural form for {n}.
 
 type Msg = string | { one?: string; other: string }
 type Dict = Record<string, Msg>
@@ -92,7 +92,7 @@ const EN: Dict = {
   agent: '[Skills panel] Before you start, load with the Skill tool: {list}.',
 }
 
-/** Les textes d'une langue : chaînes simples, ou fonctions dont les arguments suivent l'ordre des {x}. */
+/** One language's texts: plain strings, or functions whose arguments follow the order of the {x}. */
 function strings(code: string, dict: Dict) {
   const plurals = new Intl.PluralRules(code)
   const fixed: Record<string, unknown> = { max: MAX_HITS, limit: MAX_ROWS }
@@ -107,7 +107,7 @@ function strings(code: string, dict: Dict) {
       const text = typeof msg === 'string' ? msg : (plurals.select(Number(all.n ?? 0)) === 'one' && msg.one) || msg.other
       return text.replace(/\{(\w+)\}/g, (_, k: string) => String(all[k] ?? ''))
     }
-    // un message au pluriel sans {x} (ex. « skills checked ») prend le nombre en premier argument
+    // a plural message with no {x} ("skills checked") takes the count as its first argument
     const names = params.length ? params : typeof msg === 'string' ? [] : ['n']
     const value = names.length ? (...args: unknown[]) => fill(Object.fromEntries(names.map((k, i) => [k, args[i]]))) : fill({})
     const [group, name] = key.split('.')
@@ -118,8 +118,8 @@ function strings(code: string, dict: Dict) {
 }
 type Str = ReturnType<typeof strings>
 
-// Catégories de départ, déduites du nom et de la description de chaque skill ; le reste va dans « Autres ».
-// L'ordre compte : la première qui correspond l'emporte.
+// Starting categories, matched on each skill's name and description; the rest goes to Other.
+// Order matters: the first match wins.
 const CATS: [string, RegExp][] = [
   ['browser', /\bbrowser|chrome|computer[- ]use|desktop app|screenshot/],
   ['claude', /claude code|claude\.md|\bhooks?\b|settings\.json|keybinding|permission|\bmcp\b|\bplugins?\b|\bmods?\b|skill[- ]creator|find-skills/],
@@ -135,7 +135,7 @@ const category = (s: Skill, L: Str) => {
   return L.cats[CATS.find(([, rx]) => rx.test(text))?.[0] ?? 'other']
 }
 
-// Skills fournis sans fichier lisible (intégrés à Claude) : courte description, traduite ensuite comme les autres.
+// Skills that ship with Claude and have no readable file: a short description, translated like the others.
 const BUILTIN: Record<string, string> = {
   'anthropic-skills:built-in-browser': "Use the Claude app's built-in browser.",
   'anthropic-skills:chrome-browser': 'Drive Chrome through Claude in Chrome.',
@@ -167,10 +167,10 @@ const BUILTIN: Record<string, string> = {
   'security-review': 'Security review of the code.',
 }
 
-// ---------- dessins (SVG)
-// Un dessin ne porte son <style> d'animation que s'il vient de changer d'état (ensemble `fresh`) : l'app
-// redessine tout le panneau à chaque clic, et seul le dessin touché doit bouger. Le mode « interactif »
-// joue l'animation mais recharge son cadre à chaque redessin ; les dessins fixes restent des images.
+// ---------- drawings (SVG)
+// A drawing carries its animation <style> only when its state just changed (the `fresh` set): the app
+// redraws the whole panel on every click, and only the drawing that changed should move. Interactive
+// mode plays the animation but reloads its frame on each redraw, so still drawings stay images.
 
 const EASE = 'cubic-bezier(0.32,0.72,0,1)'
 const POP = 'cubic-bezier(0.34,1.56,0.64,1)'
@@ -212,7 +212,7 @@ const pinPill = (on: boolean) =>
     `<text x="10" y="11.4" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="${on ? '#ffffff' : '#ffffff59'}">P</text>`)
 const PIN = { on: pinPill(true), off: pinPill(false) } as const
 
-// La rotation de repos est dans l'attribut du <g> : elle reste quand le <style> est retiré.
+// The resting rotation sits in the <g> attribute, so it survives when the <style> is stripped.
 const chev = (open: boolean) =>
   svg(14, 14,
     css(`.c{transform-origin:7px 7px;animation:c 240ms ${EASE} backwards}@keyframes c{from{transform:rotate(${open ? -90 : 90}deg)}}`) +
@@ -235,7 +235,7 @@ const touch = (...keys: string[]) => { fresh = new Set(keys) }
 const still = (source: string) => source.replace(/<style>[\s\S]*?<\/style>/, '')
 const moving = (source: string) => (source.includes('<style>') ? true : undefined)
 
-// ---------- état
+// ---------- state
 
 const EMPTY: Sess = { on: [], mem: {}, sent: [], reload: [] }
 const VIEW: View = { q: '', open: [], org: false, proj: false, sub: false }
@@ -261,7 +261,7 @@ function firstSentence(md: string): string {
   return s.length > 180 ? s.slice(0, 177).trimEnd() + '…' : s
 }
 
-/** L'organisation enregistrée, complétée par les skills qu'elle ne connaît pas encore. */
+/** The saved layout, plus any skills it doesn't know about yet. */
 function groups(cat: Skill[], lay: Group[], L: Str): Group[] {
   const names = new Set(cat.map(s => s.name))
   const seen = new Set<string>()
@@ -274,7 +274,7 @@ function groups(cat: Skill[], lay: Group[], L: Str): Group[] {
     g.skills.push(s.name)
   }
   if (lay.length) return out
-  // sans organisation enregistrée : catégories dans l'ordre de CATS, « Autres » en dernier
+  // no saved layout: categories in CATS order, Other last
   const order = [...CATS.map(([k]) => L.cats[k]), L.cats.other]
   return out.filter(g => g.skills.length).sort((a, b) => order.indexOf(a.cat) - order.indexOf(b.cat))
 }
@@ -298,7 +298,7 @@ async function setLayout($: E, fn: (g: Group[]) => Group[]) {
 
 const home = async ($: E) => (await $.env.get('USERPROFILE')) ?? (await $.env.get('HOME')) ?? ''
 
-// La langue de Claude Desktop est dans son config.json ; sinon LANG ; sinon anglais.
+// The Claude Desktop language is in its config.json; then LANG; then English.
 async function detectLang($: E): Promise<Lang> {
   const root = await home($)
   const local = (await $.env.get('LOCALAPPDATA')) ?? ''
@@ -320,8 +320,8 @@ async function detectLang($: E): Promise<Lang> {
   return dict ? { code, dict } : { code: 'en', dict: {} }
 }
 
-// Descriptions traduites par Claude dans la langue de l'app : une seule fois par skill, gardées dans le
-// store. Un skill dont la description change est retraduit.
+// Descriptions translated by Claude into the app's language, once per skill, cached in the store.
+// A skill whose description changes is translated again.
 async function translate($: E) {
   const { code } = await read($, langA)
   if (code === 'en') return
@@ -361,7 +361,7 @@ async function loadCatalog($: E) {
   try {
     plugins = JSON.parse(await $.fs.read(`${root}/.claude/plugins/installed_plugins.json`)).plugins ?? {}
   } catch {
-    // aucun plugin installé
+    // no plugins installed
   }
   const out: Skill[] = []
   for (const s of listed) {
@@ -375,13 +375,13 @@ async function loadCatalog($: E) {
     }
     let desc = ''
     if (path) desc = await $.fs.read(path).then(firstSentence, () => '')
-    // « natif » : fourni avec Claude, ni installé par l'utilisateur ni par un plugin tiers
+    // native: ships with Claude, not installed by the user or a third-party plugin
     const native = s.name.startsWith('anthropic-skills:') || (!s.pluginName && s.source !== 'userSettings' && s.source !== 'projectSettings')
     desc ||= BUILTIN[s.name] ?? BUILTIN[short] ?? ''
     out.push({ name: s.name, source: String(s.source), desc, native, tr: tr[s.name]?.[0] === desc ? tr[s.name]![1] : undefined })
   }
   await update($, catA, () => out)
-  // premier lancement : un seul préréglage, les skills natifs ; le reste est à l'utilisateur
+  // first run: one preset with the native skills; the rest is up to the user
   if ((await $.store.get('presets')) === undefined) {
     const natives = out.filter(x => x.native).map(x => x.name)
     await update($, presetsA, () => (natives.length ? { [L.native]: natives } : {}))
@@ -389,14 +389,14 @@ async function loadCatalog($: E) {
   void translate($).catch(() => undefined)
 }
 
-// ---------- le mod
+// ---------- the mod
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     const ran = await next(e)
     const lang = await detectLang($)
     await update($, langA, () => lang)
-    await $.command.register({ name: 'panneau-skills', description: strings(lang.code, lang.dict as Dict).command })
+    await $.command.register({ name: 'skills-panel', description: strings(lang.code, lang.dict as Dict).command })
     const pins = ((await $.store.get(await pinsKey($))) as string[] | undefined) ?? []
     const saved = (await $.store.get(await sessKey($))) as Sess | undefined
     await update($, pinsA, () => pins)
@@ -406,18 +406,18 @@ export const register: Register = on => {
     if (presets) await update($, presetsA, () => presets)
     const sub = (await $.store.get('sub')) as boolean | undefined
     await setView($, v => ({ ...v, sub: sub ?? false }))
-    // reprise : l'état enregistré ; nouvelle session : les skills épinglés au projet, cochés d'office
+    // resumed session: saved state; new session: the project's pinned skills, checked
     await update($, sessA, s => saved ?? (s && (s.on.length || s.sent.length) ? s : { ...EMPTY, on: [...pins] }))
     void loadCatalog($).catch(() => undefined)
     return ran
   })
 
-  on('command.run', { command: 'panneau-skills' }, async $ => {
+  on('command.run', { command: 'skills-panel' }, async $ => {
     await $.ui.open({ id: PANE, title: 'Skills' })
     return { text: (await textsOf($)).opened }
   })
 
-  // À l'envoi d'un message, la différence entre coché et déjà envoyé part avec lui, invisible.
+  // On send, the difference between checked and already sent goes with the message, out of sight.
   on('prompt.submit', async ($, e, next) => {
     if (e.command || e.isMeta) return next(e)
     if (!(await read($, catA)).length) void loadCatalog($).catch(() => undefined)
@@ -433,7 +433,7 @@ export const register: Register = on => {
     return next({ ...e, context: [...(e.context ?? []), lines.join('\n')] })
   }).catch(($, e, next) => next(e))
 
-  // Un skill est « en mémoire » quand le moteur l'a réellement chargé.
+  // A skill counts as loaded once the engine has actually loaded it.
   on('skill.prompt', async ($, e, next) => {
     const ran = await next(e)
     if ((await read($, sessA)).mem[e.skill] !== 'ok') touch('dot:' + e.skill)
@@ -441,7 +441,7 @@ export const register: Register = on => {
     return ran
   })
 
-  // Après un résumé du contexte, les consignes ont pu être perdues.
+  // After a context summary, skill instructions may be gone.
   on('session.compact', async ($, e, next) => {
     const ran = await next(e)
     if (!e.agentId) {
@@ -451,15 +451,15 @@ export const register: Register = on => {
     return ran
   })
 
-  // Option : les sous-agents reçoivent la sélection (désactivée par défaut).
+  // Option (off by default): subagents receive the selection.
   on('tool.call', { tool: 'Agent' }, async ($, e, next) => {
     const s = await read($, sessA)
     if (!(await read($, viewA)).sub || !s.on.length || e.subagent_type === 'fork') return next(e)
     return next({ ...e, prompt: `${e.prompt}\n\n${(await textsOf($)).agent(s.on.join(', '))}` })
   }).catch(($, e, next) => next(e))
 
-  // Bouton « ✦ n » sous la barre de discussion. Cette zone ne colore pas les boutons et refuse les SVG :
-  // l'étoile pleine dit qu'un skill est chargé, l'étoile creuse que non.
+  // The ✦ n button under the prompt box. This area won't color buttons and refuses SVG,
+  // so a filled star means a skill is loaded and a hollow one means none is.
   on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
     if (e.surface !== 'desktop') return next(e)
     const s = await read($, sessA)
@@ -500,7 +500,7 @@ export const register: Register = on => {
     const all = groups(cat, await read($, layoutA), L)
     const q = v.q.trim().toLowerCase()
     const filtering = !!q || v.proj
-    const openCat = v.open.at(-1) // une seule catégorie ouverte : au-delà d'un certain poids, l'app fige le panneau
+    const openCat = v.open.at(-1) // one open category: past a certain size the app freezes the panel
     const hit = (n: string) => (!q || n.toLowerCase().includes(q) || (desc[n] ?? '').toLowerCase().includes(q)) && (!v.proj || pins.includes(n))
     const hits = filtering ? all.flatMap(g => g.skills.filter(hit)) : []
     const shown = new Set(hits.slice(0, MAX_HITS))
@@ -517,7 +517,7 @@ export const register: Register = on => {
       if (!s.on.length) return void $.ui.toast(L.pickFirst)
       void setPresets(p => { let i = 1; while (p[L.selection(i)]) i++; return { ...p, [L.selection(i)]: [...s.on] } })
     }
-    // Avant chaque changement, on note les dessins qui changent vraiment d'état : eux seuls s'animeront.
+    // Before each change, note which drawings actually change state: only those animate.
     const setOn = (fn: (cur: string[]) => string[], extra: string[] = []) => {
       const next = uniq(fn(s.on))
       const state = (sel: string[], g: Group) => { const k = g.skills.filter(n => sel.includes(n)).length; return !k ? 0 : k === g.skills.length ? 1 : 2 }
@@ -572,7 +572,7 @@ export const register: Register = on => {
         return gs
       })
 
-    // Un SVG ne capte pas le clic : un bouton transparent posé dessus le rend cliquable.
+    // An SVG doesn't take clicks; a transparent button laid over it does.
     const svgBtn = (source: string, alt: string, w: number, key: string, press: () => void) => (
       <Box key={'sb' + key} position="relative" flexShrink={0}>
         <Svg alt={alt} width={w} height={16} source={source} isInteractive={moving(source)} />
@@ -581,7 +581,7 @@ export const register: Register = on => {
         </Box>
       </Box>
     )
-    // Zone cliquable de toute la ligne ; les éléments positionnés posés ensuite gardent leur propre action.
+    // Row-wide click area; positioned elements laid after it keep their own action.
     const zone = (key: string, press: () => void) => (
       <Box position="absolute" top={0} left={0}>
         <Button key={key} plain onPress={press}>{' '.repeat(Math.max(8, Math.floor((e.props.bodyColumns - 8) * 0.47)))}</Button>
@@ -619,7 +619,7 @@ export const register: Register = on => {
             {pre && <Text size="caption" dimColor wrap="truncate">{pre}</Text>}
             {st && svgImg('dot:' + n, DOT[st], st === 'ok' ? L.alt.ok : L.alt.lost, 14, 14)}
             <Box flexGrow={1} />
-            {/* la bulle (i) s'ouvre vers le haut, au-dessus des lignes déjà dessinées */}
+            {/* the (i) bubble opens upward, over the rows already drawn */}
             <Box key={'di:' + n} position="relative" flexShrink={0}>
               <Svg alt={L.alt.desc} width={16} height={16} source={INFO} />
               <Box position="absolute" bottom={1} right={0} width={34} display="none" hover={{ display: 'flex' }} flexDirection="column" gap="xs" padding="sm" borderStyle="round" borderColor="#ffffff24" backgroundColor="#262626">
@@ -681,7 +681,7 @@ export const register: Register = on => {
           <Box flexDirection="row" gap="xs" flexWrap="wrap">
             {Object.entries(presets).map(([p, list]) => {
               const ns = list.filter(n => desc[n] !== undefined)
-              if (!ns.length) return null // préréglage dont aucun skill n'est installé ici
+              if (!ns.length) return null // preset with none of its skills installed here
               const active = ns.every(n => s.on.includes(n))
               return <Button key={'pre:' + p} variant={active ? 'primary' : 'secondary'} label={p} onPress={() => void setOn(cur => (active ? cur.filter(n => !ns.includes(n)) : [...cur, ...ns]))} />
             })}
@@ -755,7 +755,7 @@ export const register: Register = on => {
       </Box>
     )
   }).catch(($, e, next) => {
-    // si le rendu échoue, le panneau affiche pourquoi au lieu de rester vide
+    // if rendering fails, show why instead of an empty panel
     const { Text } = $.ui.resolve(e)
     return <Text size="caption" wrap="wrap">{'⚠ ' + JSON.stringify(next.error).slice(0, 1500)}</Text>
   })

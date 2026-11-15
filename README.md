@@ -1,97 +1,71 @@
-# Panneau Skills
+# Skills panel
 
-Un panneau à droite de la conversation dans Claude Code (app desktop) pour choisir les skills que Claude doit utiliser. Tu coches, et la sélection part avec ton prochain message : Claude charge les skills cochés avant de répondre et oublie les consignes de ceux que tu as décochés.
+A panel for the Claude Desktop app that lets you pick which skills Claude should use. Check a few, send your next message, and Claude loads them before it answers. Uncheck one and Claude stops following it.
 
-## Installation
+## Install
 
-Le panneau est fait pour l'app **Claude Desktop** (onglet Code).
+The panel runs in the **Claude Desktop** app (Code tab).
 
-Dans l'app : clique sur **+** à côté de la zone de saisie, puis **Plugins**, **Add marketplace** avec `borisbyll-ai/skills-panel`, puis **Add plugin**.
+In the app: click **+** next to the prompt box, then **Plugins**, **Add marketplace** with `borisbyll-ai/skills-panel`, then **Add plugin**.
 
-Ou dans un terminal, à l'invite de Claude Code :
+From a terminal, at the Claude Code prompt:
 
 ```
 /plugin install skills-panel --marketplace borisbyll-ai/skills-panel
 ```
 
-Ou depuis un shell :
+Or from a shell:
 
 ```bash
 claude plugin install skills-panel --marketplace borisbyll-ai/skills-panel
 ```
 
-Réponds `y` pour ajouter le marketplace, puis choisis la portée (utilisateur par défaut). Le mod est actif aussitôt, et dans chaque nouvelle session.
+Answer `y` to add the marketplace, then pick a scope (user is the default). The panel works right away and in every new session.
 
-## Ouvrir et fermer le panneau
+## First run
 
-- Clique sur **✦ n** sous la barre de discussion, à gauche du nom du modèle. `n` est le nombre de skills cochés. L'étoile est pleine (✦) quand au moins un skill est chargé, et creuse (✧) sinon.
-- Ou tape `/panneau-skills`.
-- La croix en haut du panneau le ferme.
+Nothing is set up in advance. The panel reads your own skill library and sorts it into categories from each skill's name and description: Code & quality, Design & UI, Writing & documents, and so on. Whatever it can't place goes into **Other**. You start with a single preset, **Claude skills**, which holds the skills that ship with Claude.
 
-## Au premier lancement
+The interface follows the language of Claude Desktop. English, French, Spanish, German, Portuguese, Italian and Japanese are included; any other language falls back to English. Outside English, Claude translates the skill descriptions once, keeps the result, and translates new skills as you install them.
 
-Le panneau s'adapte à ta bibliothèque, il n'impose rien :
+## Using it
 
-- il lit tes skills et les range dans des **catégories déduites de leur nom et de leur description** (Code & qualité, Design & interface, Rédaction & documents…). Ce qu'il ne sait pas classer va dans **Autres** ;
-- il ne crée qu'**un préréglage**, **Skills Claude**, qui regroupe les skills fournis avec Claude. Les autres, c'est toi qui les crées ;
-- l'interface suit la **langue de Claude Desktop** : anglais, français, espagnol, allemand, portugais, italien ou japonais (l'anglais pour toute autre langue) ;
-- dans une autre langue que l'anglais, il fait **traduire les descriptions des skills par Claude** (modèle Haiku), une seule fois par skill. La traduction est gardée, et refaite seulement si la description d'un skill change. Les skills installés plus tard sont traduits à leur tour.
+Click **✦ n** under the prompt box, left of the model name, to open or close the panel (`n` is how many skills are checked). The star is filled when at least one skill is loaded. You can also type `/skills-panel`.
 
-Tu peux tout réorganiser ensuite avec **Organiser**.
+- Click a category header to open it. One category stays open at a time.
+- Click anywhere on a skill's row to check or uncheck it. The box on a category header checks the whole category.
+- Hover the **(i)** badge to read a skill's description.
+- **P** pins a skill to the current folder, so it starts checked in every new session there.
+- A filled orange dot means Claude has loaded the skill. A hollow one means it may have been dropped when the context was summarized; **⟳ Reload** at the bottom sends it again.
 
-## Choisir des skills
+Nothing is sent until your next message. An orange line at the top tells you how many changes will go with it.
 
-- Les skills sont rangés par **catégories**. Un clic n'importe où sur l'en-tête ouvre ou referme la catégorie. Une seule catégorie reste ouverte à la fois.
-- Un clic n'importe où sur la ligne d'un skill le **coche** ou le **décoche**.
-- La case à gauche d'une catégorie coche ou décoche **toute la catégorie**. Un tiret signifie qu'une partie seulement est cochée.
-- **Rechercher un skill…** filtre par nom et par description (40 résultats affichés au maximum).
-- Rien ne part tant que tu n'envoies pas de message. Une ligne orange en haut du panneau annonce combien de changements partiront.
+## Presets and Organize
 
-## Sur chaque ligne
+A preset checks a group of skills in one click. **+ Save selection** turns what you've checked into a new preset.
 
-| Repère | Signification |
-| --- | --- |
-| **●** orange plein | Claude a vraiment chargé ce skill. |
-| **○** orange creux | Le skill a peut-être été perdu lors d'un résumé du contexte. Le bouton **⟳ Recharger** du bas le renverra. |
-| **(i)** | Survole-la pour lire la description du skill et son état. |
-| **P** | Épingle le skill au projet : il sera coché d'office dans les nouvelles sessions ouvertes dans ce dossier. |
+**Organize** lets you rename, replace or delete presets, and rename, reorder, create or delete categories. You can also move a skill to another category there. Your layout and presets carry over between sessions.
 
-## Préréglages
+## Subagents
 
-- Un préréglage coche un groupe de skills d'un seul clic, et le décoche au clic suivant. Au départ, il n'y a que **Skills Claude**.
-- **+ Enregistrer la sélection** crée un préréglage à partir de ce que tu as coché. Tu le renommes ensuite dans **Organiser**.
-- **Projet (n)** n'affiche que les skills épinglés à ce dossier.
+**Pass to subagents**, at the bottom of the panel, sends the checked skills to the agents Claude starts as well. It is off by default.
 
-## Organiser
+## Privacy
 
-Le bouton **Organiser** passe le panneau en mode édition :
+The panel reads the skill list, the first sentence of each `SKILL.md`, and the language setting in Claude Desktop's `config.json`. Your selection is added to your message as an instruction for Claude, out of sight in the conversation. Translating descriptions goes through your own Claude account, like any other request. Nothing else leaves your machine.
 
-- **préréglages** : renommer, remplacer par la sélection actuelle (↻), supprimer (×), en créer un, revenir aux préréglages par défaut ;
-- **catégories** : renommer, monter et descendre (↑ ↓), créer, supprimer une catégorie vide ;
-- **skills** : monter et descendre (↑ ↓), changer de catégorie avec le menu déroulant.
+## Add a language
 
-**Terminé** referme le mode édition. Ton organisation est gardée d'une session à l'autre.
+Copy a file from `lang/` (say `fr.json`), name it after the language code (`nl.json`, `ko.json`) and translate the values. Keep `{n}`, `{q}`, `{cat}` and the other placeholders as they are. Any missing line shows in English.
 
-## Le bas du panneau
+## Limits
 
-- **Transmettre aux sous-agents** : quand c'est activé, les agents que Claude lance reçoivent aussi la liste des skills cochés. Désactivé par défaut.
-- **Tout décocher** vide la sélection.
-- **↻ Recharger la liste** relit les skills installés, par exemple après en avoir ajouté un.
+- Claude Desktop only. In a terminal the panel just shows a short message.
+- Row hover is instant: the app doesn't let a mod animate it.
+- A category shows at most 100 skills. A note at the bottom of the panel names any category over that.
+- The automatic sorting works on keywords, so a few skills may land in a loose category or in Other. Organize fixes that.
+- Unchecking a skill tells Claude to stop following it, but its instructions stay in context until `/clear` or a new session.
 
-## Ce que le panneau garde et ce qu'il lit
+## License
 
-- Il garde, sur ton ordinateur et dans le stockage de Claude Code : ta sélection par session, tes épingles par dossier, tes préréglages et ton organisation.
-- Il lit la liste des skills de la session, la première phrase de leurs fichiers `SKILL.md` pour les descriptions, et le `config.json` de Claude Desktop pour la langue.
-- Pour traduire les descriptions, il les envoie à Claude avec ton compte, comme n'importe quelle demande. Il n'envoie rien d'autre, ni ailleurs. La sélection est ajoutée à ton message comme une consigne pour Claude, invisible dans la conversation.
-
-## Ajouter une langue
-
-Copie un fichier du dossier `lang/` (par exemple `fr.json`), nomme-le avec le code de la langue (`nl.json`, `ko.json`…) et traduis les valeurs. `{n}`, `{q}`, `{cat}`… doivent rester tels quels. Une phrase absente du fichier s'affiche en anglais.
-
-## Limites connues
-
-- Réservé à l'**app Claude Desktop** (onglet Code). Dans le terminal, le panneau affiche seulement un message.
-- Une catégorie affiche au plus **100 skills**. Au-delà, un encart en bas du panneau la signale : cherche les autres ou répartis-les avec Organiser.
-- Le classement automatique se fait sur des mots-clés : certains skills peuvent tomber dans une catégorie approximative, ou dans Autres.
-- Le survol des lignes est instantané : l'app n'autorise pas un mod à l'animer.
-- Décocher un skill demande à Claude de ne plus suivre ses consignes, mais elles restent dans son contexte jusqu'à `/clear` ou une nouvelle session.
+MIT

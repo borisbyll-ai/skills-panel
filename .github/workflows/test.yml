@@ -1,6 +1,6 @@
-# Fait tourner la validation et les tests du mod sur Windows, macOS et Linux à chaque envoi.
-# Les tests simulent le panneau (éléments, clics, signal envoyé à Claude) ; ils ne dessinent pas l'écran.
-# Claude Code vient de l'installeur officiel : c'est cette version qui a `claude plugin test`.
+# Validates and tests the mod on Windows, macOS and Linux on every push.
+# The tests build the panel as elements and press buttons; they don't draw pixels.
+# Claude Code comes from the official installer, the build that has `claude plugin test`.
 name: tests
 
 on:
@@ -17,12 +17,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Installer Claude Code (macOS, Linux)
+      - name: Install Claude Code (macOS, Linux)
         if: runner.os != 'Windows'
         run: |
           curl -fsSL https://claude.ai/install.sh | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - name: Installer Claude Code (Windows)
+      - name: Install Claude Code (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -30,7 +30,7 @@ jobs:
           "$env:USERPROFILE\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
       - name: Version
         run: claude --version
-      - name: Valider le mod
+      - name: Validate
         run: claude plugin validate .
-      - name: Tester le mod
+      - name: Test
         run: claude plugin test .
