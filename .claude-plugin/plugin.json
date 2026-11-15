@@ -1,0 +1,6 @@
+{
+  "name": "skills-panel",
+  "version": "0.1.0",
+  "description": "Panneau pour l’app Claude Desktop : coche les skills à charger au prochain message. Catégories déduites de ta bibliothèque, préréglages, mémoire, épingles par projet. Interface en français ou en anglais selon l’app.",
+  "types": "./types/index.d.ts"
+}

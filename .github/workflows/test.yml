@@ -1,0 +1,27 @@
+# Fait tourner la validation et les tests du mod sur Windows, macOS et Linux à chaque envoi.
+# Les tests simulent le panneau (éléments, clics, signal envoyé à Claude) ; ils ne dessinent pas l'écran.
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installer Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Valider le mod
+        run: claude plugin validate .
+      - name: Tester le mod
+        run: claude plugin test .

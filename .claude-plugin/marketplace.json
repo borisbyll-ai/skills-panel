@@ -1,0 +1,5 @@
+{
+  "name": "skills-panel",
+  "owner": { "name": "borisbyll-ai" },
+  "plugins": [{ "name": "skills-panel", "source": "./" }]
+}
