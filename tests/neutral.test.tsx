@@ -4,18 +4,18 @@ import { expect, test } from 'claude-code/testing'
 test('first run: inferred categories, Other, one native preset, 100-row cap', async ($, on) => {
   const skills = [
     { name: 'anthropic-skills:pdf', source: 'plugin', pluginName: 'anthropic-skills', tokens: 1 },
-    { name: 'mon-truc-perso', source: 'userSettings', tokens: 1 },
+    { name: 'my-own-skill', source: 'userSettings', tokens: 1 },
     ...Array.from({ length: 105 }, (_, i) => ({ name: `video-${i}`, source: 'userSettings', tokens: 1 })),
   ]
   on('command.register', () => ({ value: { command: 'skills-panel' } }))
   on('store.get', () => ({ value: undefined }))
   on('store.set', () => ({ value: undefined }))
   on('session.id', () => ({ value: 's1' }))
-  on('session.cwd', () => ({ value: '/projet' }))
+  on('session.cwd', () => ({ value: '/project' }))
   on('env.get', () => ({ value: undefined }))
   on('session.usage', () => ({ value: { context: { breakdown: { skills: { skillFrontmatter: skills } } } } }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
-  await $.session.start({ cwd: '/projet', surface: 'desktop', isInteractive: true })
+  await $.session.start({ cwd: '/project', surface: 'desktop', isInteractive: true })
   const ui = await $.ui.mount({ plugin: 'skills-panel', component: 'Pane', requestId: 'skills-panel', surface: 'desktop', props: { title: 'Skills', isFocused: false, bodyColumns: 44, placement: 'dock', scroll: { offset: 0, bodyRows: 40 }, view: {} } } as never)
   if (await ui.find({ type: 'Text', text: /Loading/ })) await ui.press({ key: 'reload-cat' })
 

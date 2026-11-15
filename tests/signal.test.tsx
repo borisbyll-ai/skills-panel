@@ -20,7 +20,7 @@ test('check, send, load: the signal goes out and the dot fills', async ($, on) =
   on('store.get', () => ({ value: undefined }))
   on('store.set', () => ({ value: undefined }))
   on('session.id', () => ({ value: 's1' }))
-  on('session.cwd', () => ({ value: '/projet' }))
+  on('session.cwd', () => ({ value: '/project' }))
   on('env.get', () => ({ value: undefined }))
   on('session.usage', () => ({
     value: { context: { breakdown: { skills: { skillFrontmatter: [{ name: 'gsap-web', source: 'built-in', tokens: 1 }] } } } },
@@ -29,7 +29,7 @@ test('check, send, load: the signal goes out and the dot fills', async ($, on) =
   on('prompt.submit', (_, e) => ({ text: e.text, context: e.context }))
   on('skill.prompt', (_, e) => ({ text: e.text }))
 
-  await $.session.start({ cwd: '/projet', surface: 'desktop', isInteractive: true })
+  await $.session.start({ cwd: '/project', surface: 'desktop', isInteractive: true })
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
 
   // the list loads in the background at start; the button reloads it and waits
