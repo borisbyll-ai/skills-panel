@@ -5,6 +5,8 @@ test('first run: inferred categories, Other, one native preset, 100-row cap', as
   const skills = [
     { name: 'anthropic-skills:pdf', source: 'plugin', pluginName: 'anthropic-skills', tokens: 1 },
     { name: 'my-own-skill', source: 'userSettings', tokens: 1 },
+    // its description talks about "voice profiles": the name must win and keep it out of Video & audio
+    { name: 'humanizer', source: 'userSettings', tokens: 1 },
     ...Array.from({ length: 105 }, (_, i) => ({ name: `video-${i}`, source: 'userSettings', tokens: 1 })),
   ]
   on('command.register', () => ({ value: { command: 'skills-panel' } }))
@@ -13,6 +15,10 @@ test('first run: inferred categories, Other, one native preset, 100-row cap', as
   on('session.id', () => ({ value: 's1' }))
   on('session.cwd', () => ({ value: '/project' }))
   on('env.get', () => ({ value: undefined }))
+  on('fs.read', ($, e, next) =>
+    /[\\/]humanizer[\\/]/.test(String(e.path))
+      ? { value: '---\nname: humanizer\ndescription: Rewrites text in five voice profiles so it reads like a human wrote it.\n---\n' }
+      : next(e))
   on('session.usage', () => ({ value: { context: { breakdown: { skills: { skillFrontmatter: skills } } } } }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   await $.session.start({ cwd: '/project', surface: 'desktop', isInteractive: true })
@@ -21,6 +27,9 @@ test('first run: inferred categories, Other, one native preset, 100-row cap', as
 
   // a skill that matches nothing goes to Other
   expect(await ui.find({ type: 'Button', key: 'co:Other' })).toBeDefined()
+  // humanizer is sorted by its name, into Writing & documents
+  await ui.press({ key: 'co:Writing & documents' })
+  expect(await ui.find({ type: 'Button', key: 'c:humanizer' })).toBeDefined()
   // one starting preset, the native skills, nothing personal
   const presets = (await ui.findAll({ type: 'Button' })).filter(b => b.key?.startsWith('pre:'))
   expect(presets.map(b => b.key)).toEqual(['pre:Claude skills'])

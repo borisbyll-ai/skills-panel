@@ -118,21 +118,22 @@ function strings(code: string, dict: Dict) {
 }
 type Str = ReturnType<typeof strings>
 
-// Starting categories, matched on each skill's name and description; the rest goes to Other.
+// Starting categories, matched on the skill's name first, then on its description; the rest goes to Other.
 // Order matters: the first match wins.
 const CATS: [string, RegExp][] = [
   ['browser', /\bbrowser|chrome|computer[- ]use|desktop app|screenshot/],
   ['claude', /claude code|claude\.md|\bhooks?\b|settings\.json|keybinding|permission|\bmcp\b|\bplugins?\b|\bmods?\b|skill[- ]creator|find-skills/],
-  ['video', /video|audio|music|soundtrack|caption|subtitle|podcast|remotion|after effects|youtube|tiktok|voice/],
+  ['video', /video|audio|music|soundtrack|caption|subtitle|podcast|remotion|after effects|youtube|tiktok|voice-?over|text-to-speech/],
   ['motion', /animat|motion|easing|transition|gsap|lottie|keyframe|\bsvg\b/],
   ['design', /design|\bui\b|\bux\b|interface|logo|brand|typograph|figma|illustrat|\bicons?\b|glass|colou?r/],
   ['data', /\bdata\b|chart|dashboard|analytic|\bcsv\b|\bsql\b|statistic/],
   ['docs', /docx|\bpdf\b|pptx|xlsx|spreadsheet|document|writ|\bcopy\b|translat|research|humani|\bslides?\b/],
   ['code', /\bcode\b|coding|review|debug|\btests?\b|refactor|\bgit\b|security|\bapi\b|\brepo|\bbugs?\b|lint|deploy|typescript|python|swift/],
 ]
+// The name says what a skill is; a description can mention other topics in passing.
 const category = (s: Skill, L: Str) => {
-  const text = `${s.name} ${s.desc}`.toLowerCase()
-  return L.cats[CATS.find(([, rx]) => rx.test(text))?.[0] ?? 'other']
+  const match = (text: string) => CATS.find(([, rx]) => rx.test(text.toLowerCase()))?.[0]
+  return L.cats[match(s.name) ?? match(s.desc) ?? 'other']
 }
 
 // Skills that ship with Claude and have no readable file: a short description, translated like the others.
