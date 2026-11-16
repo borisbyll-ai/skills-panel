@@ -1,6 +1,6 @@
 {
   "name": "skills-panel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Claude Desktop panel to pick the skills Claude loads with your next message. Categories built from your own library, editable presets, memory indicator, per-project pins, interface in 7 languages.",
   "types": "./types/index.d.ts"
 }
